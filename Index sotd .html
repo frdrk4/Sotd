@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SOTD">
+<meta name="theme-color" content="#f4efe6">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<title>SOTD – Song of the Day</title>
+<style>
+:root{--bg:#f4efe6;--card:#faf7f1;--text:#2b2620;--muted:#8a8071;--accent:#6b5a45;--accent-t:#faf7f1;--line:#e2d9c9;--soft:#ece4d5;--danger:#c0392b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1e1a15;--card:#26211b;--text:#efe7d9;--muted:#a09482;--accent:#d2bd9a;--accent-t:#1e1a15;--line:#3a332a;--soft:#2f2921;--danger:#ff7b6b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1e1a15;--card:#26211b;--text:#efe7d9;--muted:#a09482;--accent:#d2bd9a;--accent-t:#1e1a15;--line:#3a332a;--soft:#2f2921;--danger:#ff7b6b;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:560px;margin:0 auto;padding:16px}
+h1{font-size:20px;font-weight:600;letter-spacing:-.01em;margin:4px 0 2px}
+#status{color:var(--muted);font-size:13px;margin:0 0 12px}
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tab{background:var(--card);color:var(--text);border:1px solid var(--line);flex:1}
+.tab.on{background:var(--accent);color:var(--accent-t);border-color:var(--accent)}
+button{font:inherit;border:0;border-radius:10px;padding:9px 14px;background:var(--accent);color:var(--accent-t);font-weight:600}
+button:disabled{opacity:.5}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:12px}
+.banner{background:var(--soft);border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:14px}
+input[type=text]{width:100%;font:inherit;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+.chip{background:var(--bg);color:var(--text);border:1px solid var(--line);padding:5px 10px;font-weight:500;font-size:14px}
+.chip.on{background:var(--soft);border-color:var(--accent);color:var(--accent)}
+.sl{display:grid;grid-template-columns:90px 1fr 28px;align-items:center;gap:8px;margin:6px 0;font-size:14px}
+.sl input{width:100%;accent-color:var(--accent)}
+.sl b{text-align:right}
+.meta{color:var(--muted);font-size:12px;margin-bottom:4px}
+.title{font-weight:700;font-size:18px;overflow-wrap:anywhere}
+.artist{color:var(--muted);margin-bottom:8px;overflow-wrap:anywhere}
+a.listen{display:inline-block;background:var(--soft);color:var(--accent);padding:6px 12px;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px;margin-bottom:8px}
+.scores{display:flex;flex-wrap:wrap;gap:6px;font-size:13px;margin:4px 0}
+.sc{background:var(--bg);border-radius:8px;padding:3px 8px}
+.lbl{font-size:12px;color:var(--muted);margin-top:8px}
+.pl{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:14px}
+.del{background:var(--soft);color:var(--danger);padding:9px 16px;font-size:14px;font-weight:600}
+.ed{background:var(--soft);color:var(--text);padding:9px 16px;font-size:14px;font-weight:600}
+.acts{display:flex;gap:8px;margin-top:12px}
+.empty{color:var(--muted);text-align:center;padding:24px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 style="display:flex;justify-content:space-between;align-items:center"><span>SOTD</span><button class="ed" id="chname" style="padding:5px 10px;font-size:12px">Name ändern</button></h1>
+  <div class="meta" style="margin:0 0 4px">Song of the Day</div>
+  <p id="status">Verbinde …</p>
+  <div class="card" id="namebox" hidden><div class="title">Wie heißt du?</div><div class="artist">Diesen Namen sehen deine Freunde bei deinen Songs. Merk ihn dir: Mit genau demselben Namen bekommst du jederzeit deine Songs zurück.</div><input type="text" id="nameinp" placeholder="Dein Name" maxlength="30"><button id="savename" style="width:100%">Weiter</button></div>
+  <div class="tabs" id="tabs"><button class="tab on" id="t1">Feed</button><button class="tab" id="t2">Meine Playlist</button></div>
+  <div id="banners"></div>
+  <div class="card" id="form">
+    <input type="text" id="ti" placeholder="Songname">
+    <input type="text" id="ar" placeholder="Sänger / Band">
+    <input type="text" id="li" placeholder="Link (Spotify, Apple Music, Deezer, YouTube …)" inputmode="url" autocapitalize="off">
+    <div class="lbl">Wonach bewertest du? (antippen)</div>
+    <div class="chips" id="chips"></div>
+    <div id="mysl"></div>
+    <div class="lbl">Vibe (mehrere möglich)</div><div class="chips" id="vchips"></div>
+    <button id="post" style="width:100%;margin-top:6px">Song des Tages posten</button>
+    <button id="cancel" class="ed" hidden style="width:100%;margin-top:6px">Abbrechen</button>
+  </div>
+  <div class="banner" id="done" hidden><span>Dein Song für heute ist drin. Sag deinen Freunden Bescheid:</span><div style="margin-top:8px;display:flex;gap:8px"><a class="listen" id="wa" target="_blank" rel="noopener noreferrer">WhatsApp</a><a class="listen" id="sm">iMessage / SMS</a></div></div>
+  <div id="feed"></div>
+</div>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,doc,collection,setDoc,deleteDoc,getDoc,onSnapshot,query,orderBy,limit} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ===== HIER DEINE FIREBASE-DATEN EINFÜGEN =====
+const firebaseConfig={
+  apiKey:"AIzaSyCRIsRQhkcgWxrha2yPgjJzxfUsFBEiMcM",
+  authDomain:"sotd-6a6b0.firebaseapp.com",
+  projectId:"sotd-6a6b0",
+  storageBucket:"sotd-6a6b0.firebasestorage.app",
+  messagingSenderId:"337615824606",
+  appId:"1:337615824606:web:49a09ea83f8101a9ffc44f"
+};
+// ==============================================
+
+let fdb=null;
+function slug(n){return n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"user";}
+var shim={
+  doc:function(path){var ref=doc(fdb,path);return{
+    set:function(d){return setDoc(ref,d);},
+    delete:function(){return deleteDoc(ref);},
+    get:async function(){var x=await getDoc(ref);return{exists:x.exists(),id:x.id,data:function(){return x.data();}};}
+  };},
+  collection:function(name){var q=collection(fdb,name);var w={
+    orderBy:function(f,dir){q=query(q,orderBy(f,dir));return w;},
+    limit:function(n){q=query(q,limit(n));return w;},
+    onSnapshot:function(cb,err){return onSnapshot(q,function(sn){cb({docs:sn.docs.map(function(d){return{id:d.id,data:function(){return d.data();}};})});},err);}
+  };return w;}
+};
+(async function(){
+  var CATS=["Beat","Flow","Text","Melodie","Stimmung","Wiederhörwert"],VIBES=["Chill","Good","Sad","Party","Sing-along","Hype","Romantisch","Nostalgisch"];
+  var $=function(i){return document.getElementById(i);};
+  var db=null,userNs=null,me=null,names={},songs=[],ratings=[],view="feed",drafts={};
+  var f={cats:["Beat","Flow"],scores:{},vibes:[]};
+
+  function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;}
+  function p2(n){return n<10?"0"+n:""+n;}
+  function today(){var d=new Date();return d.getFullYear()+"-"+p2(d.getMonth()+1)+"-"+p2(d.getDate());}
+  function dayLabel(d){return d===today()?"heute":d.split("-").reverse().join(".");}
+  var members={},membersLoaded=false,renaming=false;
+  function nm(id){return id===me?"Du":(members[id]||names[id]||"Jemand");}
+  function safeUrl(u){u=(u||"").trim();if(!u)return "";if(!/^https?:\/\//i.test(u))u="https://"+u;try{var x=new URL(u);return (x.protocol==="https:"||x.protocol==="http:")?x.href:"";}catch(e){return "";}}
+
+  function sliders(box,cats,scores){
+    box.textContent="";
+    cats.forEach(function(c){
+      if(scores[c]==null)scores[c]=5;
+      var r=el("div","sl"),l=el("span",null,c),i=document.createElement("input"),v=el("b",null,String(scores[c]));
+      i.type="range";i.min=1;i.max=10;i.value=scores[c];
+      i.oninput=function(){scores[c]=+i.value;v.textContent=i.value;};
+      r.appendChild(l);r.appendChild(i);r.appendChild(v);box.appendChild(r);
+    });
+  }
+  function buildChips(){
+    var box=$("chips");box.textContent="";
+    CATS.forEach(function(c){
+      var b=el("button","chip"+(f.cats.indexOf(c)>=0?" on":""),c);
+      b.onclick=function(){
+        var i=f.cats.indexOf(c);
+        if(i>=0){if(f.cats.length>1)f.cats.splice(i,1);}else f.cats.push(c);
+        buildChips();sliders($("mysl"),f.cats,f.scores);
+      };
+      box.appendChild(b);
+    });
+  }
+  function vibeChips(box,arr){box.textContent="";VIBES.forEach(function(v){var b=el("button","chip"+(arr.indexOf(v)>=0?" on":""),v);b.onclick=function(){var i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v);vibeChips(box,arr);};box.appendChild(b);});}
+  var editing=null,armedId=null;
+  function startEdit(s){
+    editing=s;view="feed";$("t1").className="tab on";$("t2").className="tab";
+    $("ti").value=s.title||"";$("ar").value=s.artist||"";$("li").value=s.link||"";
+    f.cats=(s.cats||[]).filter(function(k){return k!=="Vibe";});if(!f.cats.length)f.cats=["Beat"];
+    f.scores=Object.assign({},s.scores||{});f.vibes.length=0;(s.vibes||[]).forEach(function(v){f.vibes.push(v);});
+    buildChips();sliders($("mysl"),f.cats,f.scores);vibeChips($("vchips"),f.vibes);
+    $("post").textContent="Änderungen speichern";$("cancel").hidden=false;
+    render();window.scrollTo(0,0);
+  }
+  function avg(sid,c){
+    var v=ratings.filter(function(r){return r.songId===sid&&r.scores&&r.scores[c]!=null;}).map(function(r){return r.scores[c];});
+    return v.length?(v.reduce(function(a,b){return a+b;},0)/v.length).toFixed(1):null;
+  }
+  function myRating(sid){return ratings.filter(function(r){return r.songId===sid&&r.raterId===me;})[0];}
+  function inPl(sid){var r=myRating(sid);return !!(r&&r.inPlaylist);}
+  function isRated(sid){var r=myRating(sid);return !!(r&&(Object.keys(r.scores||{}).length||(r.vibes||[]).length));}
+
+  function songCard(s,showRate){
+    var c=el("div","card");
+    c.appendChild(el("div","meta",nm(s.authorId)+" · "+dayLabel(s.day)));
+    c.appendChild(el("div","title",s.title));
+    c.appendChild(el("div","artist",s.artist));
+    var ra=el("div","acts");ra.style.marginTop="0";
+    if(s.link){var a=el("a","listen","Anhören ↗");a.href=s.link;a.target="_blank";a.rel="noopener noreferrer";a.style.marginBottom="0";ra.appendChild(a);}
+    var pb=el("button","ed",inPl(s.id)?(view==="pl"?"Aus Playlist entfernen":"In Playlist ✓"):"+ Playlist");pb.style.padding="6px 12px";
+    pb.onclick=async function(){pb.disabled=true;var r=myRating(s.id);try{await db.doc("ratings/"+s.id+"__"+me).set({songId:s.id,raterId:me,scores:r?(r.scores||{}):{},vibes:r?(r.vibes||[]):[],inPlaylist:!inPl(s.id),createdAt:r?(r.createdAt||Date.now()):Date.now()});delete drafts[s.id];}catch(e){pb.textContent="Fehler";}pb.disabled=false;};
+    ra.appendChild(pb);c.appendChild(ra);
+    var cats=(s.cats||[]).filter(function(k){return k!=="Vibe";});
+    var sc=el("div","scores");
+    cats.forEach(function(k){sc.appendChild(el("span","sc",k+" "+((s.scores||{})[k]!=null?s.scores[k]:"–")));});
+    c.appendChild(el("div","lbl",nm(s.authorId)+"s Bewertung"));c.appendChild(sc);
+    if((s.vibes||[]).length){var vb=el("div","scores");s.vibes.forEach(function(v){vb.appendChild(el("span","sc",v));});c.appendChild(el("div","lbl","Vibe"));c.appendChild(vb);}
+    var sc2=el("div","scores"),any=false;
+    cats.forEach(function(k){var a=avg(s.id,k);if(a){any=true;sc2.appendChild(el("span","sc",k+" Ø "+a));}});
+    if(any){c.appendChild(el("div","lbl","Ø der Freunde"));c.appendChild(sc2);}
+    var vc={};ratings.forEach(function(r){if(r.songId===s.id)(r.vibes||[]).forEach(function(v){vc[v]=(vc[v]||0)+1;});});
+    var vk=Object.keys(vc);if(vk.length){var vf=el("div","scores");vk.forEach(function(v){vf.appendChild(el("span","sc",v+" ×"+vc[v]));});c.appendChild(el("div","lbl","Vibe laut Freunden"));c.appendChild(vf);}
+    if(showRate&&s.authorId!==me){
+      var mr=myRating(s.id);
+      if(!drafts[s.id])drafts[s.id]={scores:Object.assign({},mr?mr.scores:{}),pl:!!(mr&&mr.inPlaylist),vibes:(mr&&mr.vibes?mr.vibes.slice():[])};
+      var d=drafts[s.id],box=el("div");
+      c.appendChild(el("div","lbl",mr?"Deine Bewertung (ändern möglich)":"Deine Bewertung"));
+      sliders(box,cats,d.scores);c.appendChild(box);
+      var vbx=el("div","chips");vibeChips(vbx,d.vibes);c.appendChild(el("div","lbl","Dein Vibe"));c.appendChild(vbx);
+      var pl=el("label","pl"),cb=document.createElement("input");
+      cb.type="checkbox";cb.checked=d.pl;cb.onchange=function(){d.pl=cb.checked;};
+      pl.appendChild(cb);pl.appendChild(document.createTextNode("In meine Playlist"));c.appendChild(pl);
+      var b=el("button",null,mr?"Aktualisieren":"Bewerten");
+      b.onclick=async function(){
+        b.disabled=true;
+        try{await db.doc("ratings/"+s.id+"__"+me).set({songId:s.id,raterId:me,scores:d.scores,vibes:d.vibes,inPlaylist:d.pl,createdAt:Date.now()});delete drafts[s.id];}
+        catch(e){$("status").textContent="Speichern nicht erlaubt: Du brauchst Contributor-Zugriff.";}
+        b.disabled=false;
+      };
+      c.appendChild(b);
+    }
+    if(s.authorId===me){
+      var ac=el("div","acts"),ed=el("button","ed","Bearbeiten"),x=el("button","del",armedId===s.id?"Wirklich löschen?":"Löschen");
+      ed.onclick=function(){startEdit(s);};
+      x.onclick=async function(){
+        if(armedId!==s.id){armedId=s.id;x.textContent="Wirklich löschen?";setTimeout(function(){if(armedId===s.id){armedId=null;render();}},8000);return;}
+        x.disabled=true;x.textContent="Lösche …";
+        try{var ref=db.doc("songs/"+s.id);await ref.delete();var chk=await ref.get();if(chk.exists){x.textContent="Nicht gelöscht – bitte nochmal";x.disabled=false;armedId=null;return;}armedId=null;songs=songs.filter(function(q){return q.id!==s.id;});render();}
+        catch(e){x.textContent="Fehler: "+((e&&(e.code||e.message))||"unbekannt");x.disabled=false;armedId=null;}
+      };
+      ac.appendChild(ed);ac.appendChild(x);c.appendChild(ac);
+    }
+    return c;
+  }
+
+  function render(){
+    var gate=!me||renaming;
+    $("namebox").hidden=!gate;$("tabs").style.display=gate?"none":"flex";
+    if(gate){["banners","form","done","feed"].forEach(function(i){$(i).hidden=true;});return;}
+    $("banners").hidden=false;$("feed").hidden=false;
+    var td=today(),mine=songs.filter(function(s){return s.day===td&&s.authorId===me;})[0];
+    var feed=$("feed"),ban=$("banners");feed.textContent="";ban.textContent="";
+    $("form").hidden=(!!mine&&!editing)||view!=="feed";$("done").hidden=!mine||!!editing||view!=="feed";
+    if(mine){var msg="Mein Song des Tages: "+mine.title+" – "+mine.artist+(mine.link?" "+mine.link:"")+"\nBewerte ihn hier: "+location.href.split("#")[0];$("wa").href="https://wa.me/?text="+encodeURIComponent(msg);$("sm").href="sms:&body="+encodeURIComponent(msg);}
+    if(view==="pl"){
+      var ids={};ratings.forEach(function(r){if(r.raterId===me&&r.inPlaylist)ids[r.songId]=1;});
+      var l=songs.filter(function(s){return ids[s.id];});
+      if(!l.length)feed.appendChild(el("div","empty","Noch keine Songs in deiner Playlist."));
+      l.forEach(function(s){feed.appendChild(songCard(s,false));});
+      return;
+    }
+    if(!mine&&new Date().getHours()>=16)ban.appendChild(el("div","banner","Du hast heute noch keinen Song des Tages gepostet."));
+    songs.forEach(function(s){
+      if(s.day===td&&s.authorId!==me&&!isRated(s.id))
+        ban.appendChild(el("div","banner",nm(s.authorId)+"s Song of the Day ist: "+s.title+" – "+s.artist+". Jetzt bewerten!"));
+    });
+    if(!songs.length)feed.appendChild(el("div","empty","Noch kein Song da. Mach den Anfang!"));
+    songs.forEach(function(s){feed.appendChild(songCard(s,true));});
+  }
+
+  async function loadNames(){
+    if(!userNs)return;
+    var ids=[];songs.concat(ratings).forEach(function(x){var i=x.authorId||x.raterId;if(i&&ids.indexOf(i)<0)ids.push(i);});
+    try{var ps=await userNs.profiles(ids);ids.forEach(function(i){names[i]=(ps[i]&&ps[i].name)||"";});}catch(e){}
+  }
+  async function refresh(){render();await loadNames();render();}
+
+  $("t1").onclick=function(){view="feed";$("t1").className="tab on";$("t2").className="tab";render();};
+  $("t2").onclick=function(){view="pl";$("t2").className="tab on";$("t1").className="tab";render();};
+  buildChips();sliders($("mysl"),f.cats,f.scores);
+
+  vibeChips($("vchips"),f.vibes);
+  if(firebaseConfig.apiKey.indexOf("HIER")>=0){$("status").textContent="Firebase ist noch nicht eingerichtet.";return;}
+  var fapp=initializeApp(firebaseConfig);fdb=getFirestore(fapp);
+  try{await signInAnonymously(getAuth(fapp));}catch(e){$("status").textContent="Anmeldung fehlgeschlagen: "+((e&&(e.code||e.message))||"unbekannt");return;}
+  db=shim;
+  try{var sn0=localStorage.getItem("sotd_name");if(sn0)me=slug(sn0);}catch(e){}
+  $("status").textContent="Live verbunden";
+
+  db.collection("songs").orderBy("createdAt","desc").limit(150).onSnapshot(function(sn){
+    songs=sn.docs.map(function(d){var o=d.data()||{};o.id=d.id;return o;});refresh();
+  },function(){$("status").textContent="Verbindung unterbrochen. Seite neu laden.";});
+  db.collection("members").limit(200).onSnapshot(function(sn){members={};sn.docs.forEach(function(d){var o=d.data()||{};if(o.name)members[d.id]=o.name;});membersLoaded=true;refresh();},function(){});
+  $("chname").onclick=function(){renaming=true;$("nameinp").value=members[me]||"";render();};
+  $("savename").onclick=async function(){var n=$("nameinp").value.trim();if(!n)return;$("savename").disabled=true;try{var nid=slug(n);await db.doc("members/"+nid).set({name:n});me=nid;try{localStorage.setItem("sotd_name",n);}catch(e2){}renaming=false;members[me]=n;}catch(e){$("status").textContent="Name speichern fehlgeschlagen: "+((e&&(e.code||e.message))||"unbekannt");}$("savename").disabled=false;render();refresh();};
+  render();
+  db.collection("ratings").limit(1000).onSnapshot(function(sn){
+    ratings=sn.docs.map(function(d){return d.data()||{};});refresh();
+  },function(){});
+
+  $("cancel").onclick=function(){editing=null;$("post").textContent="Song des Tages posten";$("cancel").hidden=true;$("ti").value="";$("ar").value="";$("li").value="";f.vibes.length=0;vibeChips($("vchips"),f.vibes);render();};
+  $("post").onclick=async function(){
+    var t=$("ti").value.trim(),a=$("ar").value.trim();
+    if(!t||!a){$("status").textContent="Bitte Songname und Künstler eintragen.";return;}
+    var day=today(),sc={};f.cats.forEach(function(c){sc[c]=f.scores[c];});
+    $("post").disabled=true;
+    try{
+      var ed=editing,sid=ed?ed.id:day+"_"+me;
+      await db.doc("songs/"+sid).set({title:t,artist:a,link:safeUrl($("li").value),cats:f.cats.slice(),vibes:f.vibes.slice(),scores:sc,authorId:me,day:ed?ed.day:day,createdAt:ed?ed.createdAt:Date.now()});
+      editing=null;$("post").textContent="Song des Tages posten";$("cancel").hidden=true;
+      $("ti").value="";$("ar").value="";$("li").value="";f.vibes.length=0;vibeChips($("vchips"),f.vibes);$("status").textContent="Live verbunden";
+    }catch(e){$("status").textContent="Speichern fehlgeschlagen: "+((e&&(e.code||e.message))||"unbekannt");}
+    $("post").disabled=false;
+  };
+})();
+</script>
+</body>
+</html>
