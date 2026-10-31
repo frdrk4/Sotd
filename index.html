@@ -21,7 +21,7 @@ body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 -apple-system
 h1{font-size:20px;font-weight:600;letter-spacing:-.01em;margin:4px 0 2px}
 #status{color:var(--muted);font-size:13px;margin:0 0 12px}
 .tabs{display:flex;gap:8px;margin-bottom:12px}
-.tab{background:var(--card);color:var(--text);border:1px solid var(--line);flex:1}
+.tab{background:var(--card);color:var(--text);border:1px solid var(--line);flex:1;padding:9px 4px;font-size:14px}
 .tab.on{background:var(--accent);color:var(--accent-t);border-color:var(--accent)}
 button{font:inherit;border:0;border-radius:10px;padding:9px 14px;background:var(--accent);color:var(--accent-t);font-weight:600}
 button:disabled{opacity:.5}
@@ -35,6 +35,9 @@ input[type=text]{width:100%;font:inherit;padding:10px;border-radius:10px;border:
 .sl input{width:100%;accent-color:var(--accent)}
 .sl b{text-align:right}
 .meta{color:var(--muted);font-size:12px;margin-bottom:4px}
+.who{font-size:18px;font-weight:700;color:var(--text)}
+.dt{color:var(--muted);font-size:12px;font-weight:400;margin-left:8px}
+.pname{font-size:28px;font-weight:700;letter-spacing:-.01em;margin-bottom:2px}
 .title{font-weight:700;font-size:18px;overflow-wrap:anywhere}
 .artist{color:var(--muted);margin-bottom:8px;overflow-wrap:anywhere}
 a.listen{display:inline-block;background:var(--soft);color:var(--accent);padding:6px 12px;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px;margin-bottom:8px}
@@ -46,15 +49,25 @@ a.listen{display:inline-block;background:var(--soft);color:var(--accent);padding
 .ed{background:var(--soft);color:var(--text);padding:9px 16px;font-size:14px;font-weight:600}
 .acts{display:flex;gap:8px;margin-top:12px}
 .empty{color:var(--muted);text-align:center;padding:24px 0}
+#splash{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .4s}
+.eq{display:flex;align-items:flex-end;gap:7px;height:64px}
+.eq i{display:block;width:10px;height:100%;background:var(--accent);border-radius:4px;transform-origin:bottom;animation:eq 1s ease-in-out infinite}
+.eq i:nth-child(2){animation-delay:.15s}.eq i:nth-child(3){animation-delay:.3s}.eq i:nth-child(4){animation-delay:.45s}.eq i:nth-child(5){animation-delay:.6s}
+@keyframes eq{0%,100%{transform:scaleY(.2)}50%{transform:scaleY(1)}}
+.sp-t{font-size:28px;font-weight:700;letter-spacing:.12em}
+.sp-s{color:var(--muted);font-size:14px;animation:pl 1.6s ease-in-out infinite}
+@keyframes pl{0%,100%{opacity:.4}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.eq i,.sp-s{animation:none}}
 </style>
 </head>
 <body>
+<div id="splash"><div class="eq"><i></i><i></i><i></i><i></i><i></i></div><div class="sp-t">SOTD</div><div class="sp-s">Songs werden geladen …</div></div>
 <div class="wrap">
   <h1 style="display:flex;justify-content:space-between;align-items:center"><span>SOTD</span><button class="ed" id="chname" style="padding:5px 10px;font-size:12px">Name ändern</button></h1>
-  <div class="meta" style="margin:0 0 4px">Song of the Day</div>
+  <div class="meta" style="margin:0 0 4px">Song of the Day · neuer Song in <b class="cdv">--:--:--</b></div>
   <p id="status">Verbinde …</p>
   <div class="card" id="namebox" hidden><div class="title">Wie heißt du?</div><div class="artist">Diesen Namen sehen deine Freunde bei deinen Songs. Merk ihn dir: Mit genau demselben Namen bekommst du jederzeit deine Songs zurück.</div><input type="text" id="nameinp" placeholder="Dein Name" maxlength="30"><button id="savename" style="width:100%">Weiter</button></div>
-  <div class="tabs" id="tabs"><button class="tab on" id="t1">Feed</button><button class="tab" id="t2">Meine Playlist</button></div>
+  <div class="tabs" id="tabs"><button class="tab on" id="t1">Feed</button><button class="tab" id="t3">Meine SOTD</button><button class="tab" id="t2">Playlist</button></div>
   <div id="banners"></div>
   <div class="card" id="form">
     <input type="text" id="ti" placeholder="Songname">
@@ -67,7 +80,7 @@ a.listen{display:inline-block;background:var(--soft);color:var(--accent);padding
     <button id="post" style="width:100%;margin-top:6px">Song des Tages posten</button>
     <button id="cancel" class="ed" hidden style="width:100%;margin-top:6px">Abbrechen</button>
   </div>
-  <div class="banner" id="done" hidden><span>Dein Song für heute ist drin. Sag deinen Freunden Bescheid:</span><div style="margin-top:8px;display:flex;gap:8px"><a class="listen" id="wa" target="_blank" rel="noopener noreferrer">WhatsApp</a><a class="listen" id="sm">iMessage / SMS</a></div></div>
+  <div class="banner" id="done" hidden><span>Dein Song für heute ist drin. Neuer Song in <b class="cdv">--:--:--</b>. Sag deinen Freunden Bescheid:</span><div style="margin-top:8px;display:flex;gap:8px"><a class="listen" id="wa" target="_blank" rel="noopener noreferrer">WhatsApp</a><a class="listen" id="sm">iMessage / SMS</a></div></div>
   <div id="feed"></div>
 </div>
 <script type="module">
@@ -138,8 +151,9 @@ var shim={
   }
   function vibeChips(box,arr){box.textContent="";VIBES.forEach(function(v){var b=el("button","chip"+(arr.indexOf(v)>=0?" on":""),v);b.onclick=function(){var i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v);vibeChips(box,arr);};box.appendChild(b);});}
   var editing=null,armedId=null;
+  function setView(v){view=v;[["t1","feed"],["t3","me"],["t2","pl"]].forEach(function(p){$(p[0]).className="tab"+(p[1]===v?" on":"");});}
   function startEdit(s){
-    editing=s;view="feed";$("t1").className="tab on";$("t2").className="tab";
+    editing=s;setView("feed");
     $("ti").value=s.title||"";$("ar").value=s.artist||"";$("li").value=s.link||"";
     f.cats=(s.cats||[]).filter(function(k){return k!=="Vibe";});if(!f.cats.length)f.cats=["Beat"];
     f.scores=Object.assign({},s.scores||{});f.vibes.length=0;(s.vibes||[]).forEach(function(v){f.vibes.push(v);});
@@ -157,7 +171,7 @@ var shim={
 
   function songCard(s,showRate){
     var c=el("div","card");
-    c.appendChild(el("div","meta",nm(s.authorId)+" · "+dayLabel(s.day)));
+    var hd=el("div","meta");hd.appendChild(el("span","who",members[s.authorId]||nm(s.authorId)));hd.appendChild(el("span","dt",dayLabel(s.day)));c.appendChild(hd);
     c.appendChild(el("div","title",s.title));
     c.appendChild(el("div","artist",s.artist));
     var ra=el("div","acts");ra.style.marginTop="0";
@@ -217,6 +231,29 @@ var shim={
     var feed=$("feed"),ban=$("banners");feed.textContent="";ban.textContent="";
     $("form").hidden=(!!mine&&!editing)||view!=="feed";$("done").hidden=!mine||!!editing||view!=="feed";
     if(mine){var msg="Mein Song des Tages: "+mine.title+" – "+mine.artist+(mine.link?" "+mine.link:"")+"\nBewerte ihn hier: "+location.href.split("#")[0];$("wa").href="https://wa.me/?text="+encodeURIComponent(msg);$("sm").href="sms:&body="+encodeURIComponent(msg);}
+    if(view==="me"){
+      var my=songs.filter(function(s){return s.authorId===me;});
+      var got=ratings.filter(function(r){return r.raterId!==me&&my.some(function(s){return s.id===r.songId;});});
+      var pc=el("div","card");
+      pc.appendChild(el("div","pname",members[me]||"Ich"));
+      pc.appendChild(el("div","meta",my.length+" SOTD gepostet · "+got.length+" Bewertungen erhalten"));
+      var st=el("div","scores"),tot=0,n=0;
+      CATS.forEach(function(c2){var t=0,k=0;got.forEach(function(r){var v=r.scores&&r.scores[c2];if(v!=null){t+=v;k++;}});if(k){tot+=t;n+=k;st.appendChild(el("span","sc",c2+" Ø "+(t/k).toFixed(1)+" ("+k+")"));}});
+      if(n){pc.appendChild(el("div","lbl","Durchschnitt aller Bewertungen: "+(tot/n).toFixed(1)));pc.appendChild(st);}
+      else pc.appendChild(el("div","lbl","Noch keine Bewertungen von Freunden."));
+      var vc2={};got.forEach(function(r){(r.vibes||[]).forEach(function(v){vc2[v]=(vc2[v]||0)+1;});});
+      var vk2=Object.keys(vc2);
+      if(vk2.length){var vb2=el("div","scores");vk2.forEach(function(v){vb2.appendChild(el("span","sc",v+" ×"+vc2[v]));});pc.appendChild(el("div","lbl","Vibes, die deine Songs bekommen"));pc.appendChild(vb2);}
+      feed.appendChild(pc);
+      feed.appendChild(el("div","lbl","Heutiger SOTD"));
+      var ts=my.filter(function(s){return s.day===td;})[0];
+      if(ts)feed.appendChild(songCard(ts,true));else feed.appendChild(el("div","empty","Heute noch kein Song gepostet."));
+      var past=my.filter(function(s){return s.day!==td;});
+      feed.appendChild(el("div","lbl","Vergangene SOTD"));
+      if(!past.length)feed.appendChild(el("div","empty","Noch keine vergangenen Songs."));
+      past.forEach(function(s){feed.appendChild(songCard(s,true));});
+      return;
+    }
     if(view==="pl"){
       var ids={};ratings.forEach(function(r){if(r.raterId===me&&r.inPlaylist)ids[r.songId]=1;});
       var l=songs.filter(function(s){return ids[s.id];});
@@ -240,27 +277,35 @@ var shim={
   }
   async function refresh(){render();await loadNames();render();}
 
-  $("t1").onclick=function(){view="feed";$("t1").className="tab on";$("t2").className="tab";render();};
-  $("t2").onclick=function(){view="pl";$("t2").className="tab on";$("t1").className="tab";render();};
+  $("t1").onclick=function(){setView("feed");render();};
+  $("t3").onclick=function(){setView("me");render();};
+  $("t2").onclick=function(){setView("pl");render();};
   buildChips();sliders($("mysl"),f.cats,f.scores);
 
   vibeChips($("vchips"),f.vibes);
-  if(firebaseConfig.apiKey.indexOf("HIER")>=0){$("status").textContent="Firebase ist noch nicht eingerichtet.";return;}
+  var ld={s:0,r:0};
+  function hideSplash(){var sp=$("splash");if(!sp||sp.dataset.h)return;sp.dataset.h="1";sp.style.opacity="0";setTimeout(function(){sp.remove();},450);}
+  function ready(k){ld[k]=1;if(ld.s&&ld.r)hideSplash();}
+  setTimeout(hideSplash,10000);
+  var lastDay=today();
+  function tick(){var n=new Date(),m=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1),sec=Math.max(0,Math.floor((m-n)/1000));var t=p2(Math.floor(sec/3600))+":"+p2(Math.floor(sec%3600/60))+":"+p2(sec%60);Array.prototype.forEach.call(document.querySelectorAll(".cdv"),function(e){e.textContent=t;});var d=today();if(d!==lastDay){lastDay=d;editing=null;armedId=null;render();}}
+  setInterval(tick,1000);tick();
+  if(firebaseConfig.apiKey.indexOf("HIER")>=0){$("status").textContent="Firebase ist noch nicht eingerichtet.";hideSplash();return;}
   var fapp=initializeApp(firebaseConfig);fdb=getFirestore(fapp);
-  try{await signInAnonymously(getAuth(fapp));}catch(e){$("status").textContent="Anmeldung fehlgeschlagen: "+((e&&(e.code||e.message))||"unbekannt");return;}
+  try{await signInAnonymously(getAuth(fapp));}catch(e){$("status").textContent="Anmeldung fehlgeschlagen: "+((e&&(e.code||e.message))||"unbekannt");hideSplash();return;}
   db=shim;
   try{var sn0=localStorage.getItem("sotd_name");if(sn0)me=slug(sn0);}catch(e){}
   $("status").textContent="Live verbunden";
 
   db.collection("songs").orderBy("createdAt","desc").limit(150).onSnapshot(function(sn){
-    songs=sn.docs.map(function(d){var o=d.data()||{};o.id=d.id;return o;});refresh();
-  },function(){$("status").textContent="Verbindung unterbrochen. Seite neu laden.";});
+    songs=sn.docs.map(function(d){var o=d.data()||{};o.id=d.id;return o;});refresh();ready("s");
+  },function(){$("status").textContent="Verbindung unterbrochen. Seite neu laden.";hideSplash();});
   db.collection("members").limit(200).onSnapshot(function(sn){members={};sn.docs.forEach(function(d){var o=d.data()||{};if(o.name)members[d.id]=o.name;});membersLoaded=true;refresh();},function(){});
   $("chname").onclick=function(){renaming=true;$("nameinp").value=members[me]||"";render();};
   $("savename").onclick=async function(){var n=$("nameinp").value.trim();if(!n)return;$("savename").disabled=true;try{var nid=slug(n);await db.doc("members/"+nid).set({name:n});me=nid;try{localStorage.setItem("sotd_name",n);}catch(e2){}renaming=false;members[me]=n;}catch(e){$("status").textContent="Name speichern fehlgeschlagen: "+((e&&(e.code||e.message))||"unbekannt");}$("savename").disabled=false;render();refresh();};
-  render();
+  render();if(!me)hideSplash();
   db.collection("ratings").limit(1000).onSnapshot(function(sn){
-    ratings=sn.docs.map(function(d){return d.data()||{};});refresh();
+    ratings=sn.docs.map(function(d){return d.data()||{};});refresh();ready("r");
   },function(){});
 
   $("cancel").onclick=function(){editing=null;$("post").textContent="Song des Tages posten";$("cancel").hidden=true;$("ti").value="";$("ar").value="";$("li").value="";f.vibes.length=0;vibeChips($("vchips"),f.vibes);render();};
